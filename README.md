@@ -5,7 +5,13 @@
 ```bash
 yarn
 yarn start
+```
 
+## Deploy
+
+```bash
+sudo npm install -g pm2
+yarn serve
 ```
 
 ## Dependencies
