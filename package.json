@@ -14,9 +14,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/marked": "^4.0.8",
     "dotenv": "^16.0.3",
     "hnswlib-node": "^1.4.2",
     "langchain": "^0.0.39",
+    "marked": "^4.3.0",
     "telegraf": "^4.12.2",
     "uuid": "^9.0.0"
   },
