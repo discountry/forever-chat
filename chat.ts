@@ -189,7 +189,10 @@ bot.command("ask", async (ctx) => {
         const docs = [
           new Document({
             metadata: { id: uuidv4(), date: new Date().toISOString() },
-            pageContent: `Human: ${question} AI: ${response}`,
+            pageContent: `Human: ${question} AI: ${response.replace(
+              "AI: ",
+              ""
+            )}`,
           }),
         ];
 
