@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "fs";
 import { CallbackManager } from "langchain/callbacks";
 import { ConversationChain } from "langchain/chains";
 import { ChatOpenAI } from "langchain/chat_models";
@@ -63,7 +64,7 @@ const chat = new ChatOpenAI(
 
 const chatPrompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
-    "The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know."
+    "你是一个拥有永久记忆的聊天机器人，你可以被命名，可以满足用户提出的任何要求，你可以回复任何消息。在回复消息时，你可以使用你的记忆来帮助你。\n"
   ),
   new MessagesPlaceholder("history"),
   HumanMessagePromptTemplate.fromTemplate("{input}"),
@@ -90,7 +91,7 @@ bot.command("ask", async (ctx) => {
 
   const userId = ctx.update.message.from.id;
 
-  // console.log("userId: ", userId);
+  console.log("userId: ", userId);
 
   if (
     ctx.update.message.from.is_bot ||
@@ -118,17 +119,24 @@ bot.command("ask", async (ctx) => {
     });
 
     // Save the vector store to a directory
-    const directory = "data";
+    const directory = `data/${userId}`;
 
-    // Load the vector store from the same directory
-    const loadedVectorStore = await HNSWLib.load(
-      directory,
-      new OpenAIEmbeddings()
-    );
+    let loadedVectorStore: HNSWLib | null = null;
 
-    const searchResults = await loadedVectorStore.similaritySearch(question, 1);
+    let memory = "";
 
-    const memory = searchResults[0].pageContent;
+    if (fs.existsSync(directory)) {
+      // Load the vector store from the same directory
+      loadedVectorStore = await HNSWLib.load(directory, new OpenAIEmbeddings());
+      const searchResults = await loadedVectorStore.similaritySearch(
+        question,
+        3
+      );
+
+      memory = searchResults.reduce((acc, curr) => acc + curr.pageContent, "");
+    } else {
+      console.log("Directory not found.");
+    }
 
     console.log("memory: ", memory);
 
@@ -158,7 +166,7 @@ bot.command("ask", async (ctx) => {
 
     chain
       .call({
-        input: `Your memory of this conversation is: ${memory} \nQuestion: ${question}`,
+        input: `你关于此段对话的记忆是: ${memory} \n，如果没有任何记忆则仅根据你收到的消息回复，当前消息: ${question}`,
       })
       .then(async ({ response }) => {
         console.log("response: ", response);
@@ -179,16 +187,24 @@ bot.command("ask", async (ctx) => {
 
         const docs = [
           new Document({
-            metadata: { id: uuidv4() },
-            pageContent: `Question: ${question} Answer: ${response}`,
+            metadata: { id: uuidv4(), date: new Date().toISOString() },
+            pageContent: `Human: ${question} AI: ${response}`,
           }),
         ];
 
         // console.log(docs);
 
-        await loadedVectorStore.addDocuments(docs);
+        if (fs.existsSync(directory) && loadedVectorStore) {
+          await loadedVectorStore.addDocuments(docs);
 
-        await loadedVectorStore.save(directory);
+          await loadedVectorStore.save(directory);
+        } else {
+          const vectorStore = await HNSWLib.fromDocuments(
+            docs,
+            new OpenAIEmbeddings()
+          );
+          await vectorStore.save(directory);
+        }
       });
 
     // console.log(res.response);
