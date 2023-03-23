@@ -174,12 +174,14 @@ bot.command("ask", async (ctx) => {
         clearInterval(updateInterval);
         setTimeout(() => {
           try {
-            ctx.telegram.editMessageText(
-              ctx.chat.id,
-              initReply.message_id,
-              "0",
-              response
-            );
+            if (replyedMessage !== response) {
+              ctx.telegram.editMessageText(
+                ctx.chat.id,
+                initReply.message_id,
+                "0",
+                response
+              );
+            }
           } catch (error) {
             console.log(error);
           }
