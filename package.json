@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "start": "yarn build && node dist/chat.js"
+    "start": "yarn build && node dist/chat.js",
+    "serve": "yarn build && pm2 start dist/chat.js --name forever-chat"
   },
   "keywords": [],
   "author": "",
