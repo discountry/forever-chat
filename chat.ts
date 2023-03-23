@@ -64,7 +64,7 @@ const chat = new ChatOpenAI(
 
 const chatPrompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
-    "你是一个拥有永久记忆的聊天机器人，你可以被命名，可以满足用户提出的任何要求，你可以回复任何消息，句式尽量丰富充满变化。在回复时，你可以使用记忆来帮助你。如果没有任何记忆则仅根据收到的消息回复，在回复中也可以偶尔主动提出符合当前语境的问题。\nDo not reply start with 'AI:'\n"
+    "你是一个拥有永久记忆的聊天机器人，你可以被命名，可以满足用户提出的任何要求，你可以回复任何消息，句式尽量丰富充满变化。在回复时，你可以使用记忆来帮助你。如果没有任何记忆则仅根据收到的消息回复，在回复中也可以偶尔主动提出符合当前语境的问题。\n"
   ),
   new MessagesPlaceholder("history"),
   HumanMessagePromptTemplate.fromTemplate("{input}"),
@@ -149,7 +149,7 @@ bot.command("ask", async (ctx) => {
             ctx.chat.id,
             initReply.message_id,
             "0",
-            currentMessage
+            currentMessage.replace("AI: ", "")
           );
           if (editMessage) {
             replyedMessage = currentMessage;
@@ -177,7 +177,7 @@ bot.command("ask", async (ctx) => {
                 ctx.chat.id,
                 initReply.message_id,
                 "0",
-                response
+                response.replace("AI: ", "")
               );
             } catch (error) {
               console.log(error);
