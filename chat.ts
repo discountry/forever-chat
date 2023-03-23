@@ -170,20 +170,20 @@ bot.command("ask", async (ctx) => {
       })
       .then(async ({ response }) => {
         console.log("response: ", response);
-
-        try {
-          if (replyedMessage !== response) {
-            ctx.telegram.editMessageText(
-              ctx.chat.id,
-              initReply.message_id,
-              "0",
-              response
-            );
-          }
-        } catch (error) {
-          console.log(error);
+        if (replyedMessage !== response) {
+          setTimeout(() => {
+            try {
+              ctx.telegram.editMessageText(
+                ctx.chat.id,
+                initReply.message_id,
+                "0",
+                response
+              );
+            } catch (error) {
+              console.log(error);
+            }
+          }, 1000);
         }
-
         clearInterval(updateInterval);
 
         const docs = [
