@@ -171,21 +171,20 @@ bot.command("ask", async (ctx) => {
       .then(async ({ response }) => {
         console.log("response: ", response);
 
-        clearInterval(updateInterval);
-        setTimeout(() => {
-          try {
-            if (replyedMessage !== response) {
-              ctx.telegram.editMessageText(
-                ctx.chat.id,
-                initReply.message_id,
-                "0",
-                response
-              );
-            }
-          } catch (error) {
-            console.log(error);
+        try {
+          if (replyedMessage !== response) {
+            ctx.telegram.editMessageText(
+              ctx.chat.id,
+              initReply.message_id,
+              "0",
+              response
+            );
           }
-        }, 1000);
+        } catch (error) {
+          console.log(error);
+        }
+
+        clearInterval(updateInterval);
 
         const docs = [
           new Document({
