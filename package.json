@@ -9,6 +9,7 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "start": "yarn build && node dist/chat.js",
+    "restart": "pm2 stop forever-chat && yarn serve",
     "serve": "yarn build && pm2 start dist/chat.js --name forever-chat --cron-restart='0 0 * * *'"
   },
   "keywords": [],
