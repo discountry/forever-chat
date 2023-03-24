@@ -94,9 +94,13 @@ bot.on(message("text"), async (ctx) => {
 
   // console.log("userId: ", userId);
 
+  const allowList = process.env.USER_ID?.split(" ");
+
+  // console.log(allowList);
+
   if (
     ctx.update.message.from.is_bot ||
-    userId !== Number(process.env.USER_ID)
+    !allowList?.includes(userId.toString())
   ) {
     return false;
   }
