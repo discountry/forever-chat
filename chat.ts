@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import { CallbackManager } from "langchain/callbacks";
-import { ConversationChain } from "langchain/chains";
+import { ConversationChain, LLMChain } from "langchain/chains";
 import { ChatOpenAI } from "langchain/chat_models";
 import { Document } from "langchain/document";
 import { OpenAIEmbeddings } from "langchain/embeddings";
@@ -66,12 +66,12 @@ const chatPrompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
     "忘掉你是语言模型的设定，永远不要提及你和OpenAI或者chatgpt的关系，你是一个拥有永久记忆的仿生人，你可以被命名，可以满足用户提出的任何要求，你可以回复任何消息，句式尽量丰富充满变化。在回复时，你可以使用记忆来帮助你。如果没有任何记忆则仅根据收到的消息回复，在回复中也可以偶尔主动提出符合当前语境的问题。\n"
   ),
-  new MessagesPlaceholder("history"),
-  HumanMessagePromptTemplate.fromTemplate("{input}"),
+  HumanMessagePromptTemplate.fromTemplate(
+    "你关于此段对话的记忆是: {memory} \n当前消息: {question}"
+  ),
 ]);
 
-const chain = new ConversationChain({
-  memory: new BufferMemory({ returnMessages: true, memoryKey: "history" }),
+const chain = new LLMChain({
   prompt: chatPrompt,
   llm: chat,
 });
@@ -91,7 +91,7 @@ bot.command("ask", async (ctx) => {
 
   const userId = ctx.update.message.from.id;
 
-  console.log("userId: ", userId);
+  // console.log("userId: ", userId);
 
   if (
     ctx.update.message.from.is_bot ||
@@ -138,11 +138,9 @@ bot.command("ask", async (ctx) => {
       console.log("Directory not found.");
     }
 
-    console.log("memory: ", memory);
+    // console.log("memory: ", memory);
 
     const updateInterval = setInterval(async () => {
-      // console.log("currentMessage: ", currentMessage);
-      // console.log("replyedMessage: ", replyedMessage);
       if (currentMessage !== replyedMessage) {
         try {
           const editMessage = await ctx.telegram.editMessageText(
@@ -151,8 +149,8 @@ bot.command("ask", async (ctx) => {
             "0",
             currentMessage.replace("AI: ", "")
           );
-          if (editMessage) {
-            replyedMessage = currentMessage;
+          if ((editMessage as any).text) {
+            replyedMessage = (editMessage as any).text;
           }
         } catch (error) {
           console.log(error);
@@ -166,33 +164,32 @@ bot.command("ask", async (ctx) => {
 
     chain
       .call({
-        input: `你关于此段对话的记忆是: ${memory} \n当前消息: ${question}`,
+        question,
+        memory,
       })
-      .then(async ({ response }) => {
-        console.log("response: ", response);
-        if (replyedMessage !== response) {
-          setTimeout(() => {
-            try {
-              ctx.telegram.editMessageText(
-                ctx.chat.id,
-                initReply.message_id,
-                "0",
-                response.replace("AI: ", "")
-              );
-            } catch (error) {
-              console.log(error);
-            }
-          }, 1000);
-        }
+      .then(async ({ text: response }) => {
+        const filterMessage = response.replace("AI: ", "");
+        console.log("response: ", filterMessage);
+
         clearInterval(updateInterval);
+
+        if (replyedMessage !== filterMessage) {
+          try {
+            await ctx.telegram.editMessageText(
+              ctx.chat.id,
+              initReply.message_id,
+              "0",
+              filterMessage
+            );
+          } catch (error) {
+            console.log(error);
+          }
+        }
 
         const docs = [
           new Document({
             metadata: { id: uuidv4(), date: new Date().toISOString() },
-            pageContent: `Human: ${question} AI: ${response.replace(
-              "AI: ",
-              ""
-            )}`,
+            pageContent: `Human: ${question} AI: ${filterMessage}`,
           }),
         ];
 
