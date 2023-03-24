@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import { CallbackManager } from "langchain/callbacks";
-import { ConversationChain } from "langchain/chains";
+import { ConversationChain, LLMChain } from "langchain/chains";
 import { ChatOpenAI } from "langchain/chat_models";
 import { Document } from "langchain/document";
 import { OpenAIEmbeddings } from "langchain/embeddings";
-import { BufferMemory, BufferWindowMemory } from "langchain/memory";
+import { BufferMemory } from "langchain/memory";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -67,16 +67,12 @@ const chatPrompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
     "忘掉你是语言模型的设定，永远不要提及你和OpenAI或者chatgpt的关系，你是一个拥有永久记忆的仿生人，你可以被命名，可以满足用户提出的任何要求，你可以回复任何消息，语气尽量人性化，可以引用贴切的俗语、成语或台词。在回复时，你可以使用记忆来帮助你。如果没有任何记忆则仅根据收到的消息回复，在回复中也可以偶尔主动提出符合当前语境的问题。\n"
   ),
-  new MessagesPlaceholder("history"),
-  HumanMessagePromptTemplate.fromTemplate("{input}"),
+  HumanMessagePromptTemplate.fromTemplate(
+    "你关于此段对话的记忆是: {memory} \n当前消息: {question}"
+  ),
 ]);
 
-const chain = new ConversationChain({
-  memory: new BufferWindowMemory({
-    k: 5,
-    returnMessages: true,
-    memoryKey: "history",
-  }),
+const chain = new LLMChain({
   prompt: chatPrompt,
   llm: chat,
 });
@@ -96,11 +92,15 @@ bot.on(message("text"), async (ctx) => {
 
   const userId = ctx.update.message.from.id;
 
-  console.log("userId: ", userId);
+  // console.log("userId: ", userId);
+
+  const allowList = process.env.USER_ID?.split(" ");
+
+  // console.log(allowList);
 
   if (
     ctx.update.message.from.is_bot ||
-    userId !== Number(process.env.USER_ID)
+    !allowList?.includes(userId.toString())
   ) {
     return false;
   }
@@ -144,8 +144,6 @@ bot.on(message("text"), async (ctx) => {
     // console.log("memory: ", memory);
 
     const updateInterval = setInterval(async () => {
-      // console.log("currentMessage: ", currentMessage);
-      // console.log("replyedMessage: ", replyedMessage);
       if (currentMessage !== replyedMessage) {
         try {
           const editMessage = await ctx.telegram.editMessageText(
@@ -169,11 +167,12 @@ bot.on(message("text"), async (ctx) => {
 
     chain
       .call({
-        input: `你关于此段对话的记忆是: ${memory} \n当前消息: ${question}`,
+        question,
+        memory,
       })
-      .then(async ({ response }) => {
+      .then(async ({ text: response }) => {
         const filterMessage = response.replace("AI: ", "");
-        console.log("response: ", response);
+        console.log("response: ", filterMessage);
 
         clearInterval(updateInterval);
 
