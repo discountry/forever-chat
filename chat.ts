@@ -22,6 +22,7 @@ import {
 import { HNSWLib } from "langchain/vectorstores";
 import { marked } from "marked";
 import { Telegraf } from "telegraf";
+import { message } from "telegraf/filters";
 import { v4 as uuidv4 } from "uuid";
 
 dotenv.config();
@@ -85,7 +86,7 @@ bot.start((ctx) => {
   );
 });
 
-bot.command("ask", async (ctx) => {
+bot.on(message("text"), async (ctx) => {
   currentMessage = "";
   replyedMessage = "";
 
@@ -100,9 +101,7 @@ bot.command("ask", async (ctx) => {
     return false;
   }
 
-  const args = ctx.update.message.text.split(" ");
-  args.shift();
-  let question = args.join(" ");
+  const question = ctx.update.message.text.trim();
 
   if (question.length == 0) {
     return ctx.reply("Type something after /ask to ask me stuff.", {
