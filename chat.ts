@@ -145,7 +145,7 @@ bot.on(message("text"), async (ctx) => {
       console.log("Directory not found.");
     }
 
-    // console.log("memory: ", memory);
+    console.log("memory: ", memory);
 
     const updateInterval = setInterval(async () => {
       // console.log("currentMessage: ", currentMessage);
