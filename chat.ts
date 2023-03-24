@@ -137,7 +137,7 @@ bot.on(message("text"), async (ctx) => {
       loadedVectorStore = await HNSWLib.load(directory, new OpenAIEmbeddings());
       const searchResults = await loadedVectorStore.similaritySearch(
         question,
-        3
+        5
       );
 
       memory = searchResults.reduce((acc, curr) => acc + curr.pageContent, "");
