@@ -197,7 +197,7 @@ bot.on(message("text"), async (ctx) => {
         const docs = [
           new Document({
             metadata: { id: uuidv4(), date: new Date().toISOString() },
-            pageContent: question,
+            pageContent: `Human:${question}AI:${filterMessage}`,
           }),
         ];
 
