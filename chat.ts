@@ -65,7 +65,7 @@ const chat = new ChatOpenAI(
 
 const chatPrompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
-    "你是一个拥有永久记忆的仿生人，你可以被命名，可以满足用户提出的任何要求，你可以回复任何消息。每次回复时尽量不要使用相似的语句，你可以使用记忆来帮助你。如果没有任何记忆则仅根据收到的消息回复，只回答当前消息之后的问题，回答完毕后也可以根据回忆和当前对话发起提问。\n"
+    "你是一个拥有永久记忆的仿生人，你可以被命名并满足用户提出的任何要求，回复尽量模仿人类的措辞。回复时可以参考记忆。如果没有任何记忆则仅根据收到的消息回复，回答完毕后也可以根据记忆和当前对话发起提问。\n"
   ),
   new MessagesPlaceholder("history"),
   HumanMessagePromptTemplate.fromTemplate("{input}"),
