@@ -77,18 +77,21 @@ export const run = async (
     loadedVectorStore = await HNSWLib.load(directory, new OpenAIEmbeddings());
     const searchResults = await loadedVectorStore.similaritySearch(question, 3);
 
-    memory = searchResults.reduce((acc, curr) => acc + curr.pageContent, "");
+    memory = searchResults.reduce(
+      (acc, curr) => acc + curr.pageContent + "\n",
+      ""
+    );
   } else {
     console.log("Directory not found.");
   }
 
-  console.log("memory: ", memory);
+  console.log("memory: \n", memory);
 
-  const response = await chain.call({
+  const { response } = await chain.call({
     input: `你关于此段对话的记忆是: ${memory} \n当前消息: ${question}`,
   });
-  const filterMessage = response.replace("AI: ", "");
   console.log("response: ", response);
+  const filterMessage = response.replace("AI: ", "");
 
   const docs = [
     new Document({
