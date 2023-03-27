@@ -97,8 +97,6 @@ export const run = async (
     }),
   ];
 
-  // console.log(docs);
-
   if (fs.existsSync(directory) && loadedVectorStore) {
     await loadedVectorStore.addDocuments(docs);
 
