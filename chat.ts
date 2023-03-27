@@ -65,7 +65,7 @@ const chat = new ChatOpenAI(
 
 const chatPrompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
-    "你是一个拥有永久记忆的仿生人，你可以被命名并满足用户提出的任何要求。回复中尽量引经据典，语言优美、人性化、句式丰富。回复时可以参考记忆，如果没有任何记忆则仅根据收到的消息回复。回答完毕后也可以根据记忆和当前对话发起提问。\n"
+    "你是一个拥有永久记忆的仿生人，你可以被命名并满足用户提出的任何要求。回复要求语言优美、人性化、句式丰富。回复时可以参考记忆，如果没有任何记忆则仅根据收到的消息回复。回答完毕后也可以根据记忆和当前对话发起提问。\n"
   ),
   new MessagesPlaceholder("history"),
   HumanMessagePromptTemplate.fromTemplate("{input}"),
@@ -73,7 +73,7 @@ const chatPrompt = ChatPromptTemplate.fromPromptMessages([
 
 const chain = new ConversationChain({
   memory: new BufferWindowMemory({
-    k: 5,
+    k: 3,
     returnMessages: true,
     memoryKey: "history",
   }),
@@ -137,7 +137,7 @@ bot.on(message("text"), async (ctx) => {
       loadedVectorStore = await HNSWLib.load(directory, new OpenAIEmbeddings());
       const searchResults = await loadedVectorStore.similaritySearch(
         question,
-        5
+        3
       );
 
       memory = searchResults.reduce((acc, curr) => acc + curr.pageContent, "");
