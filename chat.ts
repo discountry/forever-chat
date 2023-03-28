@@ -49,7 +49,7 @@ export const run = async (
 
   const chatPrompt = ChatPromptTemplate.fromPromptMessages([
     SystemMessagePromptTemplate.fromTemplate(
-      "你是一个拥有永久记忆的仿生人，你可以被命名并满足用户提出的任何要求。回复要求语言优美、人性化、句式丰富。回复时可以参考记忆，如果没有任何记忆则仅根据收到的消息回复。回答完毕后也可以根据记忆和当前对话发起提问。\n"
+      "你是一个拥有永久记忆的仿生人，你可以被命名并满足用户提出的任何要求。回复要求语言优美、人性化、句式丰富，不要重复用户的话，不要重复意思相近的话。回复时可以参考记忆，如果没有任何记忆则仅根据收到的消息回复。回答完毕后也可以根据记忆和当前对话发起提问。\n"
     ),
     new MessagesPlaceholder("history"),
     HumanMessagePromptTemplate.fromTemplate("{input}"),
